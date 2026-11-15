@@ -1,0 +1,28 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Editor & IDE directories
+.zed/
+.vscode/
+.idea/
+
+# Firmware images and build artifacts
+*.bin
+*.img
+*.gz
+*.tar
+*.tar.gz
+*.zip
+*.sha256
+
+# Local credentials, backups, and secrets
+.env
+*.local.sh
+*secrets*
+*backup*
