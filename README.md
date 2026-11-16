@@ -1,6 +1,6 @@
 # Dalles Lab — Self-Hosted Homelab & Infrastructure-as-Code
 
-Notice: Active development on this as the moment, it isn't completely ready yet.
+Notice: Active development at this moment, it isn't completely ready yet.
 
 Documentation, provisioning scripts, and network architecture for my self-hosted homelab running on a single-NIC **Router-on-a-Stick** topology with **Proxmox VE**, **OPNsense**, **Caddy**, and a 3-node **OpenWrt `802.11s` mesh**.
 
