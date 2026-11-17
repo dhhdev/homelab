@@ -17,7 +17,7 @@ Port-by-port VLAN documentation, disaster recovery workflow, and declarative Ope
 
 Currently, **VLAN `101` (`ISP wan`)** isolates carrier PPPoE WAN frames between Port 1 and Port 2, while **VLAN `1` (`Default`)** carries the flat `10.0.0.0/24` LAN across Ports 2–8:
 
-| Port | Connected Device | PVID | VLAN `1` (`Default`) | VLAN `101` (`Telenor`) | Role |
+| Port | Connected Device | PVID | VLAN `1` (`Default`) | VLAN `101` (`ISP`) | Role |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **Port 1** | ISP Fiber ONT | `101` | Not Member | **Tagged** | Carrier WAN In (`VLAN 101`) |
 | **Port 2** | Lenovo M700 Tiny (`nic0` / `vmbr0`) | `1` | **Untagged** | **Tagged** | Router-on-a-Stick Trunk (WAN + LAN) |
@@ -26,7 +26,7 @@ Currently, **VLAN `101` (`ISP wan`)** isolates carrier PPPoE WAN frames between 
 | **Port 5** | *Available* | `1` | **Untagged** | Not Member | LAN Access Port |
 | **Port 6** | *Available* | `1` | **Untagged** | Not Member | LAN Access Port |
 | **Port 7** | *Available* | `1` | **Untagged** | Not Member | LAN Access Port |
-| **Port 8** | *Available* | `1` | **Untagged** | Not Member | LAN Access Port |
+| **Port 8** | `Infra / Emergency Rescue Port` | `1` | **Untagged** | Not Member | LAN Access Port |
 
 ---
 
@@ -34,13 +34,13 @@ Currently, **VLAN `101` (`ISP wan`)** isolates carrier PPPoE WAN frames between 
 
 When transitioning from the flat `10.0.0.0/24` LAN to full VLAN segmentation (`10, 20, 30, 40`), update the switch to match the OpenWrt `uci-mesh-defaults.sh` bridge tags:
 
-| VLAN ID | Name | Port 1 (ONT) | Port 2 (Proxmox Trunk) | Port 3 (`wifi-main` Trunk) | Ports 4–8 (Access) |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **101** | `ISP wan` | **Tagged** | **Tagged** | Not Member | Not Member |
-| **10** | `infra` | Not Member | **Tagged** | **Tagged** | Not Member *(or Untagged for Infra)* |
-| **20** | `trusted` | Not Member | **Tagged** | **Tagged** | **Untagged** (`PVID 20`) |
-| **30** | `guest` | Not Member | **Tagged** | **Tagged** | Not Member |
-| **40** | `iot` | Not Member | **Tagged** | **Tagged** | Not Member |
+| VLAN ID | Name | Port 1 (ONT) | Port 2 (Proxmox Trunk) | Port 3 (`wifi-main` Trunk) | Ports 4–7 (Access) | Port 8 (Emergency Rescue Port) |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **101** | `ISP wan` | **Tagged** | **Tagged** | Not Member | Not Member | Not Member |
+| **10** | `infra` | Not Member | **Tagged** | **Tagged** | Not Member *(or Untagged for Infra)* | **Untagged** (`PVID 10`) |
+| **20** | `trusted` | Not Member | **Tagged** | **Tagged** | **Untagged** (`PVID 20`) | Not Member |
+| **30** | `guest` | Not Member | **Tagged** | **Tagged** | Not Member | Not Member |
+| **40** | `iot` | Not Member | **Tagged** | **Tagged** | Not Member | Not Member |
 
 ---
 

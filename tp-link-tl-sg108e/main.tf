@@ -29,7 +29,7 @@ import {
 }
 
 import {
-  to = tplinkeasysmart_vlan_8021q_group.telenor_wan
+  to = tplinkeasysmart_vlan_8021q_group.isp_wan
   id = "101"
 }
 
@@ -69,7 +69,7 @@ import {
 }
 
 import {
-  to = tplinkeasysmart_vlan_8021q_pvid.port_8
+  to = tplinkeasysmart_vlan_8021q_pvid.port_8_rescue
   id = "8"
 }
 
@@ -132,7 +132,8 @@ resource "tplinkeasysmart_vlan_8021q_pvid" "port_7" {
   pvid = 1
 }
 
-resource "tplinkeasysmart_vlan_8021q_pvid" "port_8" {
+# Port 8: Dedicated Infra / Emergency Rescue ("Oh Shit") Access Port
+resource "tplinkeasysmart_vlan_8021q_pvid" "port_8_rescue" {
   port = 8
   pvid = 1
 }
