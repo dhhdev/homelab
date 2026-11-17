@@ -1,0 +1,61 @@
+dalles.it, *.dalles.it {
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+
+	@root host dalles.it
+	handle @root {
+		root * /etc/caddy/root_site
+		file_server
+	}
+
+	@proxy host proxy.dalles.it
+	handle @proxy {
+		respond "Caddy Reverse Proxy: Online" 200
+	}
+
+	@opnsense host opnsense.dalles.it
+	handle @opnsense {
+		reverse_proxy https://10.0.0.1 {
+			transport http {
+				# Specific to lighttpd and how opnsense runs it
+				versions 1.1
+				tls_insecure_skip_verify
+			}
+		}
+	}
+
+	@pve host pve.dalles.it
+	handle @pve {
+		reverse_proxy https://10.0.0.2:8006 {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+	}
+
+	@switch host switch.dalles.it
+	handle @switch {
+		reverse_proxy http://10.0.0.3
+	}
+
+	@wifi_main host wifi-main.dalles.it
+	handle @wifi_main {
+		reverse_proxy http://wifi-main.internal
+	}
+
+	@wifi_first_floor host wifi-first-floor.dalles.it
+	handle @wifi_first_floor {
+		reverse_proxy http://wifi-first-floor.internal
+	}
+
+	@wifi_boiler_room host wifi-boiler-room.dalles.it
+	handle @wifi_boiler_room {
+		reverse_proxy http://wifi-boiler-room.internal
+	}
+
+	handle {
+		respond "Unknown internal service" 404
+	}
+}

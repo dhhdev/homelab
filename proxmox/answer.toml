@@ -1,0 +1,29 @@
+[global]
+keyboard = "dk"
+country = "dk"
+fqdn = "pve.dalles.it"
+mailto = "daniel@dalles.dk"
+timezone = "Europe/Copenhagen"
+# Generate via: openssl passwd -6
+root-password-hashed = "$6$REPLACE_WITH_SHA512_PASSWORD_HASH"
+root-ssh-keys = []
+reboot-on-error = false
+
+[network]
+source = "from-answer"
+cidr = "10.0.0.2/24"
+gateway = "10.0.0.1"
+dns = "10.0.0.1"
+filter.ID_NET_NAME_PATH = "*"
+
+[disk-setup]
+filesystem = "ext4"
+lvm.hdsize = 110
+lvm.swapsize = 4
+lvm.maxroot = 30
+filter.ID_MODEL = "*"
+
+[first-boot]
+source = "from-iso"
+executable = "first-boot.sh"
+ordering = "fully-up"

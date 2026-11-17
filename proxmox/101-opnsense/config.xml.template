@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<opnsense>
+  <theme>opnsense-dark</theme>
+  <system>
+    <hostname>opnsense</hostname>
+    <domain>internal</domain>
+    <timezone>Europe/Copenhagen</timezone>
+    <language>en_US</language>
+    <dnsallowoverride>1</dnsallowoverride>
+    <dnsserver>1.1.1.1</dnsserver>
+    <dnsserver>1.0.0.1</dnsserver>
+    <disablenatreflection>yes</disablenatreflection>
+    <disableconsolemenu>1</disableconsolemenu>
+    <powerd_ac_mode>hadp</powerd_ac_mode>
+    <powerd_battery_mode>hadp</powerd_battery_mode>
+    <powerd_normal_mode>hadp</powerd_normal_mode>
+
+    <group uuid="190afa10-bba6-4455-ae2a-a4d0ef9ce78a">
+      <gid>1999</gid>
+      <name>admins</name>
+      <scope>system</scope>
+      <priv>page-all</priv>
+      <member>0,2000</member>
+    </group>
+
+    <user uuid="bd69a4ee-1095-442a-9735-141f41a1aec3">
+      <uid>0</uid>
+      <name>root</name>
+      <disabled>1</disabled>
+      <scope>system</scope>
+    </user>
+
+    <user uuid="a74de581-7336-4abf-887d-d4e5e4a82d4f">
+      <uid>2000</uid>
+      <name>dalle</name>
+      <disabled>0</disabled>
+      <scope>user</scope>
+      <email>daniel@dalles.dk</email>
+      <descr>Daniel Hyldebrandt Hemmingsen</descr>
+      <password>${OPNSENSE_DALLE_PASSWORD_HASH}</password>
+    </user>
+
+    <webgui>
+      <protocol>https</protocol>
+      <ssl-certref>6af0a7dc9c170</ssl-certref>
+      <althostnames>opnsense.dalles.it dalles.it</althostnames>
+    </webgui>
+
+    <ssh>
+      <group>admins</group>
+      <noauto>1</noauto>
+    </ssh>
+
+    <firmware>
+      <plugins>os-qemu-guest-agent</plugins>
+    </firmware>
+  </system>
+
+  <interfaces>
+    <wan>
+      <if>pppoe0</if>
+      <enable>1</enable>
+      <lock>1</lock>
+      <blockpriv>1</blockpriv>
+      <blockbogons>1</blockbogons>
+      <mtu>1492</mtu>
+      <mss>1452</mss>
+      <ipaddr>pppoe</ipaddr>
+    </wan>
+    <lan>
+      <if>vtnet0</if>
+      <enable>1</enable>
+      <lock>1</lock>
+      <ipaddr>10.0.0.1</ipaddr>
+      <subnet>24</subnet>
+    </lan>
+  </interfaces>
+
+  <ppps>
+    <ppp>
+      <ptpid>0</ptpid>
+      <type>pppoe</type>
+      <if>pppoe0</if>
+      <ports>vtnet1</ports>
+      <username>${PPPOE_USERNAME}</username>
+      <password>${PPPOE_PASSWORD}</password>
+      <descr>Telenor ISP Configuration</descr>
+      <mtu>1492</mtu>
+      <mru>1492</mru>
+    </ppp>
+  </ppps>
+
+  <nat>
+    <outbound>
+      <mode>automatic</mode>
+    </outbound>
+  </nat>
+
+  <OPNsense>
+    <Interfaces>
+      <settings>
+        <disablechecksumoffloading>1</disablechecksumoffloading>
+        <disablesegmentationoffloading>1</disablesegmentationoffloading>
+        <disablelargereceiveoffloading>1</disablelargereceiveoffloading>
+        <disablevlanhwfilter>2</disablevlanhwfilter>
+        <disableipv6>1</disableipv6>
+      </settings>
+    </Interfaces>
+
+    <Firewall>
+      <Filter>
+        <rules>
+          <rule uuid="283e300a-2768-46f2-a02d-22401d7abde0">
+            <enabled>1</enabled>
+            <sequence>1</sequence>
+            <action>pass</action>
+            <quick>1</quick>
+            <interface>lan</interface>
+            <direction>in</direction>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>any</protocol>
+            <source_net>lan</source_net>
+            <destination_net>any</destination_net>
+            <description>Default allow LAN to any rule</description>
+          </rule>
+        </rules>
+      </Filter>
+    </Firewall>
+
+    <Kea>
+      <dhcp4>
+        <general>
+          <enabled>1</enabled>
+          <interfaces>lan</interfaces>
+          <valid_lifetime>4000</valid_lifetime>
+          <fwrules>1</fwrules>
+        </general>
+        <subnets>
+          <subnet4 uuid="d182f0b6-7eed-4820-b480-e57072caf753">
+            <subnet_id>1</subnet_id>
+            <subnet>10.0.0.0/24</subnet>
+            <pools>10.0.0.100 - 10.0.0.250</pools>
+            <option_data_autocollect>0</option_data_autocollect>
+            <option_data>
+              <domain_name_servers>10.0.0.1</domain_name_servers>
+              <routers>10.0.0.1</routers>
+              <ntp_servers>10.0.0.1</ntp_servers>
+            </option_data>
+            <description>DHCP Subnet Pool (WiFi and users)</description>
+          </subnet4>
+        </subnets>
+        <reservations>
+          <reservation uuid="bb019ddc-d935-4714-8a75-090f837be63e">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.2</ip_address>
+            <hw_address>00:23:24:c9:14:ff</hw_address>
+            <hostname>pve</hostname>
+            <description>Proxmox Server</description>
+          </reservation>
+          <reservation uuid="4c981ae9-ff44-45b7-9cfc-346fc55b3927">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.3</ip_address>
+            <hw_address>60:15:6f:6e:92:7a</hw_address>
+            <hostname>switch</hostname>
+            <description>TP-Link TL-SG108E switch</description>
+          </reservation>
+          <reservation uuid="0f3a9cb8-f76c-4aec-a550-540087eac908">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.10</ip_address>
+            <hw_address>64:29:43:92:4e:e9</hw_address>
+            <hostname>wifi-main</hostname>
+            <description>Main wifi node in living room</description>
+          </reservation>
+          <reservation uuid="f03a5605-fd6c-4289-ad71-c928168b794f">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.11</ip_address>
+            <hw_address>64:29:43:92:4e:df</hw_address>
+            <hostname>wifi-first-floor</hostname>
+            <description>First floor wifi node</description>
+          </reservation>
+          <reservation uuid="2df95c94-8af1-4417-b832-bb8e90cc1f2d">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.12</ip_address>
+            <hw_address>64:29:43:92:4e:f3</hw_address>
+            <hostname>wifi-boiler-room</hostname>
+            <description>Wifi node for the boiler room</description>
+          </reservation>
+          <reservation uuid="7ed9a947-9aa5-4d39-ac67-8e5f80d416fc">
+            <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
+            <ip_address>10.0.0.99</ip_address>
+            <hw_address>bc:24:11:bd:85:75</hw_address>
+            <hostname>proxy</hostname>
+            <description>Internal reverse proxy (static in Proxmox, reserved here for DNS/IPAM)</description>
+          </reservation>
+        </reservations>
+      </dhcp4>
+    </Kea>
+
+    <unboundplus>
+      <general>
+        <enabled>1</enabled>
+        <port>53</port>
+        <active_interface>lan</active_interface>
+        <regdhcpdomain>internal</regdhcpdomain>
+        <regdhcpstatic>1</regdhcpstatic>
+        <noreglladdr6>1</noreglladdr6>
+      </general>
+      <forwarding>
+        <enabled>1</enabled>
+      </forwarding>
+      <hosts>
+        <host uuid="7817e9e1-8958-4505-b8ad-3e9b4d41b712">
+          <enabled>1</enabled>
+          <hostname>*</hostname>
+          <domain>dalles.it</domain>
+          <rr>A</rr>
+          <server>10.0.0.99</server>
+          <description>Wildcard for *.dalles.it</description>
+        </host>
+      </hosts>
+    </unboundplus>
+
+    <QemuGuestAgent>
+      <general>
+        <Enabled>1</Enabled>
+      </general>
+    </QemuGuestAgent>
+  </OPNsense>
+
+  <cert uuid="56bd846a-5ba4-4c47-ac36-5241e182281a">
+    <refid>6af0a7dc9c170</refid>
+    <descr>Web GUI TLS certificate</descr>
+    <crt>${OPNSENSE_WEBGUI_CERT_B64}</crt>
+    <prv>${OPNSENSE_WEBGUI_KEY_B64}</prv>
+  </cert>
+</opnsense>
