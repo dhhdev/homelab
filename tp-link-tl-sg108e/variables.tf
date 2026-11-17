@@ -1,13 +1,13 @@
 variable "switch_ip" {
   description = "Management IP address of the TP-Link TL-SG108E switch"
   type        = string
-  default     = "10.0.10.3"
+  default     = "192.168.0.10"
 }
 
 variable "switch_mac" {
   description = "MAC Address of the actual switch."
   type        = string
-  default     = "60:15:6f:6e:92:7a"
+  default     = "00:00:00:00:00:00"
 }
 
 variable "switch_user" {
