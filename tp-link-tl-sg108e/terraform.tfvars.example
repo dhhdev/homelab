@@ -1,0 +1,5 @@
+# Copy this file to terraform.tfvars and populate your actual local secrets
+switch_ip       = "192.168.0.10"
+switch_mac      = "AA:00:00:00:00:00"
+switch_user     = "CHOOSE_AN_ADMIN_USERNAME"
+switch_password = "REPLACE_WITH_SWITCH_PASSWORD"
