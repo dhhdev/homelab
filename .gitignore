@@ -13,6 +13,7 @@ proxmox/199-caddy-proxy/caddy-linux-amd64
 **/.terraform/
 *.tfstate*
 *.tfvars
+variables.tf
 
 # openwrt specific ignores
 *.squashfs
