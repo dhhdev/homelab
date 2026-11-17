@@ -1,4 +1,0 @@
-# Copy to terraform.tfvars and populate password (never commit terraform.tfvars!)
-switch_ip       = "10.0.10.3"
-switch_user     = "admin"
-switch_password = "REPLACE_WITH_SWITCH_PASSWORD"

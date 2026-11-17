@@ -10,7 +10,7 @@ terraform {
 
 provider "tplinkeasysmart" {
   host     = var.switch_ip
-  mac      = "60:15:6f:6e:92:7a"
+  mac      = var.switch_mac
   username = var.switch_user
   password = var.switch_password
 }
