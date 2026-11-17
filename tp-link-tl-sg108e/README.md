@@ -68,4 +68,5 @@ This folder also includes declarative configuration (`main.tf`) using the commun
 > [!NOTE]
 > Just to be sure I have this for now - but in my testing it works as it should.
 
-> **Caution (`Hardware v6.0`):** Because `tplinkeasysmart` relies on TP-Link's reverse-engineered UDP management protocol (primarily tested on V3–V5), always export a fresh `.bin` backup before running `tofu apply` / `terraform apply` against `v6.0` firmware.
+> [!CAUTION]
+> (`Hardware v6.0`):** Because `tplinkeasysmart` relies on TP-Link's reverse-engineered UDP management protocol (primarily tested on V3–V5), always export a fresh `.bin` backup before running `tofu apply` / `terraform apply` against `v6.0` firmware.
