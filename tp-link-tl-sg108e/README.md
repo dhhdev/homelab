@@ -2,6 +2,9 @@
 
 Port-by-port VLAN documentation, disaster recovery workflow, and declarative OpenTofu/Terraform configuration for the **TP-Link TL-SG108E (Hardware V6.0)** Easy Smart Switch (`switch.dalles.it`).
 
+> [!CAUTION]
+> (`Hardware v6.0`): Because `tplinkeasysmart` relies on TP-Link's reverse-engineered UDP management protocol (primarily tested on V3–V5), always export a fresh `.bin` backup before running `tofu apply` / `terraform apply` against `v6.0` firmware.
+
 ## Device Details
 - **Model & Hardware Revision:** TP-Link TL-SG108E `v6.0`
 - **Firmware:** `1.0.0 Build 20250710 Rel.71008`
@@ -58,15 +61,3 @@ Because the TL-SG108E does not expose SSH or an official REST API, always keep a
 2. Navigate to **System → System Tools → Backup and Restore**.
 3. Click **Backup Config** to save a local `.bin` snapshot whenever VLANs change.
 4. On a replacement switch (default IP `192.168.0.1`, `admin`/`admin`), upload the `.bin` file under **Restore Config** to restore all VLANs, PVIDs, and DHCP settings in one step.
-
----
-
-## Optional OpenTofu / Terraform Automation
-
-This folder also includes declarative configuration (`main.tf`) using the community [`davidlukac/tplinkeasysmart`](https://github.com/davidlukac/tplinkeasysmart) provider.
-
-> [!NOTE]
-> Just to be sure I have this for now - but in my testing it works as it should.
-
-> [!CAUTION]
-> (`Hardware v6.0`):** Because `tplinkeasysmart` relies on TP-Link's reverse-engineered UDP management protocol (primarily tested on V3–V5), always export a fresh `.bin` backup before running `tofu apply` / `terraform apply` against `v6.0` firmware.
