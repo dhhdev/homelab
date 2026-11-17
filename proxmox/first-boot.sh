@@ -32,6 +32,9 @@ iface vmbr0.10 inet static
 source /etc/network/interfaces.d/*
 EOF
 
+# Apply host network settings immediately so the bridge is stable
+ifreload -a
+
 # 2. Locate ISO payload
 PAYLOAD_DIR=""
 for candidate in \
@@ -60,7 +63,8 @@ qm create 101 \
   --agent enabled=1 \
   --boot "order=scsi0;net0" \
   --tags internal \
-  --onboot 1
+  --onboot 1 \
+  --startup "order=1,up=30"
 
 if [[ -n "${PAYLOAD_DIR}" && -f "${PAYLOAD_DIR}/101-opnsense/config.xml" ]]; then
   SEED_IMG="/var/lib/vz/images/101/opnsense-seed.img"
@@ -75,9 +79,6 @@ if [[ -n "${PAYLOAD_DIR}" && -f "${PAYLOAD_DIR}/101-opnsense/config.xml" ]]; the
   rmdir "${MNT_TMP}"
   qm set 101 --ide0 "local:101/opnsense-seed.img"
 fi
-
-# Apply host network settings now that OPNsense configuration is ready
-ifreload -a
 
 # Boot OPNsense & wait for WAN connectivity before downloading LXC templates
 qm start 101 || true
@@ -106,7 +107,8 @@ pct create 199 "local:vztmpl/${DEBIAN_TMPL}" \
   --features nesting=1 \
   --unprivileged 1 \
   --tags internal \
-  --onboot 1
+  --onboot 1 \
+  --startup "order=2,up=30"
 
 pct start 199
 
