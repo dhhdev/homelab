@@ -18,20 +18,25 @@ if [[ ! -f "${SCRIPT_DIR}/199-caddy-proxy/caddy-linux-amd64" ]]; then
   bash "${SCRIPT_DIR}/199-caddy-proxy/build-caddy.sh"
 fi
 
-# 2. Render OPNsense config.xml if .env is present
+# 2. Prepare ISO payload
+mkdir -p "${STAGING_DIR}/homelab-payload/199-caddy-proxy/certs"
+cp -r "${SCRIPT_DIR}/199-caddy-proxy" "${STAGING_DIR}/homelab-payload/"
+
 if [[ -f "${SCRIPT_DIR}/101-opnsense/.env" ]]; then
   bash "${SCRIPT_DIR}/101-opnsense/render-config.sh"
-fi
-
-# 3. Prepare ISO payload
-mkdir -p "${STAGING_DIR}/homelab-payload"
-cp -r "${SCRIPT_DIR}/199-caddy-proxy" "${STAGING_DIR}/homelab-payload/"
-if [[ -f "${SCRIPT_DIR}/101-opnsense/config.xml" ]]; then
   mkdir -p "${STAGING_DIR}/homelab-payload/101-opnsense"
   cp "${SCRIPT_DIR}/101-opnsense/config.xml" "${STAGING_DIR}/homelab-payload/101-opnsense/"
+  (
+    set -a
+    source "${SCRIPT_DIR}/101-opnsense/.env"
+    set +a
+    if [[ -n "${OPNSENSE_WEBGUI_CERT_B64:-}" ]]; then
+      printf '%s' "${OPNSENSE_WEBGUI_CERT_B64}" | base64 -d >"${STAGING_DIR}/homelab-payload/199-caddy-proxy/certs/opnsense-cert.pem"
+    fi
+  )
 fi
 
-# 4. Bake answer.toml, first-boot.sh, and payload into Proxmox ISO
+# 3. Bake answer.toml, first-boot.sh, and payload into Proxmox ISO
 proxmox-auto-install-assistant prepare-iso "${PVE_ISO}" \
   --fetch-from iso \
   --answer-file "${SCRIPT_DIR}/answer.toml" \

@@ -21,7 +21,8 @@ dalles.it, *.dalles.it {
 			transport http {
 				# Specific to lighttpd and how opnsense runs it
 				versions 1.1
-				tls_insecure_skip_verify
+				tls_server_name opnsense.dalles.it
+                tls_trusted_ca_certs /etc/caddy/certs/opnsense-cert.pem
 			}
 		}
 	}
@@ -30,7 +31,8 @@ dalles.it, *.dalles.it {
 	handle @pve {
 		reverse_proxy https://10.0.0.2:8006 {
 			transport http {
-				tls_insecure_skip_verify
+				tls_server_name pve.dalles.it
+                tls_trusted_ca_certs /etc/caddy/certs/pve-root-ca.pem
 			}
 		}
 	}

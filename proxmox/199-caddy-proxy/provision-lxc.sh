@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd)"
+SCRIPT_DIR="$(cd "\((dirname "\){BASH_SOURCE}")" && pwd)"
 CADDY_BIN="${SCRIPT_DIR}/caddy-linux-amd64"
-
 if [[ ! -f "${CADDY_BIN}" ]]; then
   echo "Error: ${CADDY_BIN} not found. Run ./build-caddy.sh first." >&2
   exit 1
@@ -12,7 +11,6 @@ fi
 # 1. Install minimal runtime dependencies & create caddy system user
 apt-get update
 apt-get install -y --no-install-recommends ca-certificates
-
 if ! id -u caddy >/dev/null 2>&1; then
   groupadd --system caddy
   useradd --system \
@@ -24,7 +22,8 @@ if ! id -u caddy >/dev/null 2>&1; then
     caddy
 fi
 
-mkdir -p /etc/caddy/root_site /etc/systemd/system/caddy.service.d
+# Create some directory structures we need
+mkdir -p /etc/caddy/root_site /etc/caddy/certs /etc/systemd/system/caddy.service.d
 
 # 2. Install xcaddy-compiled binary
 install -m 755 "${CADDY_BIN}" /usr/bin/caddy
@@ -33,10 +32,15 @@ install -m 755 "${CADDY_BIN}" /usr/bin/caddy
 cp "${SCRIPT_DIR}/caddy.service" /etc/systemd/system/caddy.service
 cp "${SCRIPT_DIR}/caddy.service.d/override.conf" /etc/systemd/system/caddy.service.d/override.conf
 
-# 4. Deploy Caddyfile, root_site, and secrets (if present)
+# 4. Deploy Caddyfile, root_site, upstream TLS certs, and secrets
 cp "${SCRIPT_DIR}/Caddyfile" /etc/caddy/Caddyfile
+
 if [[ -d "${SCRIPT_DIR}/root_site" ]]; then
   cp -r "${SCRIPT_DIR}/root_site/." /etc/caddy/root_site/
+fi
+
+if [[ -d "${SCRIPT_DIR}/certs" ]]; then
+  cp -r "${SCRIPT_DIR}/certs/." /etc/caddy/certs/
 fi
 
 if [[ -f "${SCRIPT_DIR}/caddy.env" ]]; then
@@ -46,7 +50,8 @@ if [[ -f "${SCRIPT_DIR}/caddy.env" ]]; then
 fi
 
 chown -R root:caddy /etc/caddy
-chmod 755 /etc/caddy /etc/caddy/root_site
+chmod 755 /etc/caddy /etc/caddy/root_site /etc/caddy/certs
+chmod 644 /etc/caddy/certs/*.pem 2>/dev/null || true
 
 # 5. Validate config & start service
 systemctl daemon-reload

@@ -4,7 +4,7 @@ set -euo pipefail
 # 1. Configure VLAN-aware vmbr0 & disable NIC offloading for OPNsense VirtIO stability
 PRIMARY_NIC=$(ip -o -4 route show to default | awk '{print $5}')
 
-cat <<EOF > /etc/network/interfaces
+cat <<EOF >/etc/network/interfaces
 auto lo
 iface lo inet loopback
 
@@ -96,6 +96,9 @@ if [[ -n "${PAYLOAD_DIR}" ]]; then
   if [[ -d "${PAYLOAD_DIR}/199-caddy-proxy" ]]; then
     sleep 5
     pct push 199 "${PAYLOAD_DIR}/199-caddy-proxy" /opt/199-caddy-proxy -r
+    pct exec 199 -- mkdir -p /opt/199-caddy-proxy/certs
+    pct push 199 /etc/pve/pve-root-ca.pem /opt/199-caddy-proxy/certs/pve-root-ca.pem
     pct exec 199 -- bash /opt/199-caddy-proxy/provision-lxc.sh
   fi
+
 fi
