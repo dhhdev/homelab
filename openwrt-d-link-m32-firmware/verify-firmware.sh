@@ -4,14 +4,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd)"
 BIN_DIR="${SCRIPT_DIR}/bin"
 
-SYSUPGRADE_BIN=$(find "${BIN_DIR}" -maxdepth 1 -name '*-squashfs-sysupgrade.bin' | head -n1)
+SQUASHFS_IMG=$(find "${BIN_DIR}" -maxdepth 1 -name 'root.squashfs' | head -n1)
 
-if [[ -z "${SYSUPGRADE_BIN}" || ! -f "${SYSUPGRADE_BIN}" ]]; then
-  echo "Error: No *-squashfs-sysupgrade.bin found in ${BIN_DIR}. Run ./build-firmware.sh first." >&2
+if [[ -z "${SQUASHFS_IMG}" || ! -f "${SQUASHFS_IMG}" ]]; then
+  echo "Error: No root.squashfs found in ${BIN_DIR}. Ensure build-firmware.sh copies it over." >&2
   exit 1
 fi
 
-echo "Verifying $(basename "${SYSUPGRADE_BIN}")..."
+echo "Verifying root.squashfs..."
 
 docker run --rm --platform linux/amd64 \
   -v "${BIN_DIR}:/bin_dir:ro" \
@@ -20,8 +20,11 @@ docker run --rm --platform linux/amd64 \
     set -euo pipefail
     apt-get update -qq && apt-get install -y -qq squashfs-tools >/dev/null
     mkdir -p /tmp/img && cd /tmp/img
-    tar -xf /bin_dir/*-squashfs-sysupgrade.bin
-    unsquashfs -d rootfs sysupgrade-*/root >/dev/null
+
+    IMG_FILE=$(ls /bin_dir/root.squashfs | head -n1)
+
+    # Unpack the raw squashfs image directly
+    unsquashfs -d rootfs "${IMG_FILE}" >/dev/null
 
     TARGET="rootfs/etc/uci-defaults/99-mesh-defaults"
 

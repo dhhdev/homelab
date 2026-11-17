@@ -62,7 +62,7 @@ COUNTRY_CODE="DK"
 # It isn't possible to add/remove users in this system. It is built like this to make the
 # firmware as small as possible.
 if [ -n "$MASTER_ROOT_PASS" ]; then
-    printf "%s\n%s\n" "$MASTER_ROOT_PASS" "$MASTER_ROOT_PASS" | passwd root >/dev/null 2>&1
+  printf "%s\n%s\n" "$MASTER_ROOT_PASS" "$MASTER_ROOT_PASS" | passwd root >/dev/null 2>&1
 fi
 
 # ==============================================================================
@@ -74,45 +74,45 @@ fi
 NODE_MAC=$(cat /sys/class/ieee80211/phy0/macaddress /sys/class/ieee80211/phy1/macaddress /sys/class/net/br-lan/address 2>/dev/null | grep -v '00:00:00:00:00:00' | head -n1 | tr 'a-f' 'A-F')
 
 case "$NODE_MAC" in
-    "64:29:43:92:4E:EA"|"64:29:43:92:4E:EB")
-        HOSTNAME="wifi-main"
-        DESCRIPTION="The main base station of my WiFi mesh setup"
-        CH_2G="1"
-        TX_5G="20"
-        MIN_CONNECT_SNR="-82"
-        BLOCK_MAC=""
-        ;;
-    "64:29:43:92:4E:E0"|"64:29:43:92:4E:E1")
-        HOSTNAME="wifi-first-floor"
-        DESCRIPTION="First floor satellite node of my WiFi mesh setup"
-        CH_2G="6"
-        TX_5G="17"
-        MIN_CONNECT_SNR="-75"
-        # My Mac Mini M1 has a tendency to wander up to this node and I do not want this.
-        BLOCK_MAC="4C:20:B8:E9:0A:54"
-        ;;
-    "64:29:43:92:4E:F4"|"64:29:43:92:4E:F5")
-        HOSTNAME="wifi-boiler-room"
-        DESCRIPTION="Boiler room satellite node of my WiFi mesh setup"
-        CH_2G="11"
-        TX_5G="20"
-        MIN_CONNECT_SNR="-82"
-        BLOCK_MAC=""
-        ;;
-    *)
-        HOSTNAME="wifi-unknown-node"
-        DESCRIPTION="Unrecognized MAC (${NODE_MAC:-unknown}) - check node assignment"
-        CH_2G="1"
-        TX_5G="20"
-        MIN_CONNECT_SNR="-82"
-        BLOCK_MAC=""
-        ;;
+"64:29:43:92:4E:EA" | "64:29:43:92:4E:EB")
+  HOSTNAME="wifi-main"
+  DESCRIPTION="The main base station of my WiFi mesh setup"
+  CH_2G="1"
+  TX_5G="20"
+  MIN_CONNECT_SNR="-82"
+  BLOCK_MAC=""
+  ;;
+"64:29:43:92:4E:E0" | "64:29:43:92:4E:E1")
+  HOSTNAME="wifi-first-floor"
+  DESCRIPTION="First floor satellite node of my WiFi mesh setup"
+  CH_2G="6"
+  TX_5G="17"
+  MIN_CONNECT_SNR="-75"
+  # My Mac Mini M1 has a tendency to wander up to this node and I do not want this.
+  BLOCK_MAC="4C:20:B8:E9:0A:54"
+  ;;
+"64:29:43:92:4E:F4" | "64:29:43:92:4E:F5")
+  HOSTNAME="wifi-boiler-room"
+  DESCRIPTION="Boiler room satellite node of my WiFi mesh setup"
+  CH_2G="11"
+  TX_5G="20"
+  MIN_CONNECT_SNR="-82"
+  BLOCK_MAC=""
+  ;;
+*)
+  HOSTNAME="wifi-unknown-node"
+  DESCRIPTION="Unrecognized MAC (${NODE_MAC:-unknown}) - check node assignment"
+  CH_2G="1"
+  TX_5G="20"
+  MIN_CONNECT_SNR="-82"
+  BLOCK_MAC=""
+  ;;
 esac
 
 # Enforce https, this only runs the first time when flashing the firmware
 if [ -f /etc/config/uhttpd ]; then
-    uci set uhttpd.main.redirect_https='1'
-    uci commit uhttpd
+  uci set uhttpd.main.redirect_https='1'
+  uci commit uhttpd
 fi
 
 # ==============================================================================
@@ -162,13 +162,13 @@ uci add_list network.@device[0].ports='wan'
 # 30 - (guest) Guest Network
 # 40 - (iot) Internet of Things devices and other such devices, like a frameo picture frame
 for vlan_id in 10 20 30 40; do
-    uci set "network.vlan${vlan_id}=bridge-vlan"
-    uci set "network.vlan${vlan_id}.device=br-lan"
-    uci set "network.vlan${vlan_id}.vlan=${vlan_id}"
-    uci add_list "network.vlan${vlan_id}.ports=lan1:t"
-    uci add_list "network.vlan${vlan_id}.ports=lan2:t"
-    uci add_list "network.vlan${vlan_id}.ports=wan:t"
-    uci add_list "network.vlan${vlan_id}.ports=phy1-mesh0:t"
+  uci set "network.vlan${vlan_id}=bridge-vlan"
+  uci set "network.vlan${vlan_id}.device=br-lan"
+  uci set "network.vlan${vlan_id}.vlan=${vlan_id}"
+  uci add_list "network.vlan${vlan_id}.ports=lan1:t"
+  uci add_list "network.vlan${vlan_id}.ports=lan2:t"
+  uci add_list "network.vlan${vlan_id}.ports=wan:t"
+  uci add_list "network.vlan${vlan_id}.ports=phy1-mesh0:t"
 done
 
 uci set network.infra=interface
@@ -198,33 +198,33 @@ uci commit network
 uci delete dhcp.lan 2>/dev/null
 uci commit dhcp 2>/dev/null
 for svc in dnsmasq odhcpd firewall; do
-    if [ -x "/etc/init.d/$svc" ]; then
-        /etc/init.d/$svc disable >/dev/null 2>&1
-        /etc/init.d/$svc stop >/dev/null 2>&1
-    fi
+  if [ -x "/etc/init.d/$svc" ]; then
+    /etc/init.d/$svc disable >/dev/null 2>&1
+    /etc/init.d/$svc stop >/dev/null 2>&1
+  fi
 done
 
 # Add the provided SSH public key to dropbear if present, disable root password logins.
 # If SSH_PUBLIC_KEY hasn't been provided, dropbear/SSH will still be disabled. But it won't be configured.
 # (Would be able to password login with your WEB GUI login if enabled, and no SSH_PUBLIC_KEY is provided.)
 if [ -f /etc/config/dropbear ]; then
-    if [ -n "$SSH_PUBLIC_KEY" ]; then
-        mkdir -p /etc/dropbear
-        chmod 700 /etc/dropbear
-        printf "%s\n" "$SSH_PUBLIC_KEY" > /etc/dropbear/authorized_keys
-        chmod 600 /etc/dropbear/authorized_keys
-        uci set dropbear.@dropbear[0].PasswordAuth='off'
-        uci set dropbear.@dropbear[0].RootPasswordAuth='off'
-    fi
-    # Explicitly bind Dropbear SSH to the 'infra' (VLAN 10) interface. That way only
-    # devices on VLAN 10 can even SSH into the WiFi node(s).
-    uci set dropbear.@dropbear[0].Interface='infra'
-    # Disable dropbear always, so you will have to activate it manually when needed
-    # through the WEB GUI.
-    uci set dropbear.@dropbear[0].enable='0'
-    uci commit dropbear
-    /etc/init.d/dropbear disable >/dev/null 2>&1
-    /etc/init.d/dropbear stop >/dev/null 2>&1
+  if [ -n "$SSH_PUBLIC_KEY" ]; then
+    mkdir -p /etc/dropbear
+    chmod 700 /etc/dropbear
+    printf "%s\n" "$SSH_PUBLIC_KEY" >/etc/dropbear/authorized_keys
+    chmod 600 /etc/dropbear/authorized_keys
+    uci set dropbear.@dropbear[0].PasswordAuth='off'
+    uci set dropbear.@dropbear[0].RootPasswordAuth='off'
+  fi
+  # Explicitly bind Dropbear SSH to the 'infra' (VLAN 10) interface. That way only
+  # devices on VLAN 10 can even SSH into the WiFi node(s).
+  uci set dropbear.@dropbear[0].Interface='infra'
+  # Disable dropbear always, so you will have to activate it manually when needed
+  # through the WEB GUI.
+  uci set dropbear.@dropbear[0].enable='0'
+  uci commit dropbear
+  /etc/init.d/dropbear disable >/dev/null 2>&1
+  /etc/init.d/dropbear stop >/dev/null 2>&1
 fi
 
 # ==============================================================================
@@ -268,21 +268,21 @@ uci set wireless.default_radio1.key="$WIFI_TRUSTED_PASS"
 uci set wireless.default_radio1.ieee80211w='0'
 # Disable radio if password hasn't been changed from defaults.
 if [ -z "$WIFI_TRUSTED_PASS" ] || [ "$WIFI_TRUSTED_PASS" = "CHANGE_ME" ]; then
-    uci set wireless.default_radio0.disabled='1'
-    uci set wireless.default_radio1.disabled='1'
+  uci set wireless.default_radio0.disabled='1'
+  uci set wireless.default_radio1.disabled='1'
 else
-    uci set wireless.default_radio0.disabled='0'
-    uci set wireless.default_radio1.disabled='0'
+  uci set wireless.default_radio0.disabled='0'
+  uci set wireless.default_radio1.disabled='0'
 fi
 
 # This adds a specific MAC address to block from a node. If provided.
 # I only really use this for blocking my Mac Mini M1 from connecting to WiFi
 # on the upstairs node - since it gives me some specific trouble on this exact device.
 if [ -n "$BLOCK_MAC" ]; then
-    uci set wireless.default_radio0.macfilter='deny'
-    uci add_list wireless.default_radio0.maclist="$BLOCK_MAC"
-    uci set wireless.default_radio1.macfilter='deny'
-    uci add_list wireless.default_radio1.maclist="$BLOCK_MAC"
+  uci set wireless.default_radio0.macfilter='deny'
+  uci add_list wireless.default_radio0.maclist="$BLOCK_MAC"
+  uci set wireless.default_radio1.macfilter='deny'
+  uci add_list wireless.default_radio1.maclist="$BLOCK_MAC"
 fi
 
 # SSID 2: My Guest WiFi (Guest Wi-Fi -> VLAN 30, 2.4 GHz + 5 GHz, Client Isolation)
@@ -309,11 +309,11 @@ uci set wireless.guest_5g.key="$WIFI_GUEST_PASS"
 uci set wireless.guest_5g.ieee80211w='0'
 # Disable radio if password hasn't been changed from defaults.
 if [ -z "$WIFI_GUEST_PASS" ] || [ "$WIFI_GUEST_PASS" = "CHANGE_ME" ]; then
-    uci set wireless.guest_2g.disabled='1'
-    uci set wireless.guest_5g.disabled='1'
+  uci set wireless.guest_2g.disabled='1'
+  uci set wireless.guest_5g.disabled='1'
 else
-    uci set wireless.guest_2g.disabled='0'
-    uci set wireless.guest_5g.disabled='0'
+  uci set wireless.guest_2g.disabled='0'
+  uci set wireless.guest_5g.disabled='0'
 fi
 
 # SSID 3: My IoT WiFi (IoT Wi-Fi -> VLAN 40, 2.4 GHz Only, Client Isolation)
@@ -329,9 +329,9 @@ uci set wireless.iot_2g.key="$WIFI_IOT_PASS"
 uci set wireless.iot_2g.ieee80211w='0'
 # Disable radio if password hasn't been changed from defaults.
 if [ -z "$WIFI_IOT_PASS" ] || [ "$WIFI_IOT_PASS" = "CHANGE_ME" ]; then
-    uci set wireless.iot_2g.disabled='1'
+  uci set wireless.iot_2g.disabled='1'
 else
-    uci set wireless.iot_2g.disabled='0'
+  uci set wireless.iot_2g.disabled='0'
 fi
 
 # 802.11s Mesh Backhaul on 5 GHz (Carries all VLANs over mesh_trunk/br-lan)
@@ -346,9 +346,9 @@ uci set wireless.wifinet2.mesh_rssi_threshold='0'
 uci set wireless.wifinet2.key="$MESH_BACKHAUL_PASS"
 # Disable radio if password hasn't been changed from defaults.
 if [ -z "$MESH_BACKHAUL_PASS" ] || [ "$MESH_BACKHAUL_PASS" = "CHANGE_ME" ]; then
-    uci set wireless.wifinet2.disabled='1'
+  uci set wireless.wifinet2.disabled='1'
 else
-    uci set wireless.wifinet2.disabled='0'
+  uci set wireless.wifinet2.disabled='0'
 fi
 
 uci commit wireless
@@ -357,32 +357,32 @@ uci commit wireless
 # 5. Usteer Roaming Configuration
 # ==============================================================================
 if [ -f /etc/config/usteer ]; then
-    uci set usteer.@usteer[0].network='trusted'
-    uci set usteer.@usteer[0].syslog='1'
-    uci set usteer.@usteer[0].local_mode='0'
-    uci set usteer.@usteer[0].ipv6='0'
-    uci set usteer.@usteer[0].debug_level='2'
-    uci set usteer.@usteer[0].min_connect_snr="$MIN_CONNECT_SNR"
-    uci set usteer.@usteer[0].min_snr='-85'
-    uci set usteer.@usteer[0].roam_trigger_snr='-75'
-    uci set usteer.@usteer[0].roam_scan_snr='-70'
-    uci set usteer.@usteer[0].band_steering_interval='30000'
-    uci set usteer.@usteer[0].band_steering_min_snr='-80'
-    uci set usteer.@usteer[0].initial_connect_delay='500'
-    uci set usteer.@usteer[0].assoc_steering='1'
-    uci set usteer.@usteer[0].probe_steering='0'
-    uci commit usteer
-    /etc/init.d/usteer enable >/dev/null 2>&1
+  uci set usteer.@usteer[0].network='trusted'
+  uci set usteer.@usteer[0].syslog='1'
+  uci set usteer.@usteer[0].local_mode='0'
+  uci set usteer.@usteer[0].ipv6='0'
+  uci set usteer.@usteer[0].debug_level='2'
+  uci set usteer.@usteer[0].min_connect_snr="$MIN_CONNECT_SNR"
+  uci set usteer.@usteer[0].min_snr='-85'
+  uci set usteer.@usteer[0].roam_trigger_snr='-75'
+  uci set usteer.@usteer[0].roam_scan_snr='-70'
+  uci set usteer.@usteer[0].band_steering_interval='30000'
+  uci set usteer.@usteer[0].band_steering_min_snr='-80'
+  uci set usteer.@usteer[0].initial_connect_delay='500'
+  uci set usteer.@usteer[0].assoc_steering='1'
+  uci set usteer.@usteer[0].probe_steering='0'
+  uci commit usteer
+  /etc/init.d/usteer enable >/dev/null 2>&1
 fi
 
 # ==============================================================================
 # 6. Attended Sysupgrade Defaults
 # ==============================================================================
 if [ -f /etc/config/attendedsysupgrade ]; then
-    uci set attendedsysupgrade.client.upgrade_packages='1'
-    uci set attendedsysupgrade.client.auto_search='0'
-    uci set attendedsysupgrade.client.login_check_for_upgrades='0'
-    uci commit attendedsysupgrade
+  uci set attendedsysupgrade.client.upgrade_packages='1'
+  uci set attendedsysupgrade.client.auto_search='0'
+  uci set attendedsysupgrade.client.login_check_for_upgrades='0'
+  uci commit attendedsysupgrade
 fi
 
 exit 0
