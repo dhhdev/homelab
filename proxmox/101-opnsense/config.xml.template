@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <opnsense>
   <theme>opnsense-dark</theme>
   <system>
@@ -68,13 +68,35 @@
       <ipaddr>pppoe</ipaddr>
     </wan>
     <lan>
-      <if>vtnet0</if>
+      <if>vtnet0_vlan10</if>
       <enable>1</enable>
       <lock>1</lock>
-      <ipaddr>10.0.0.1</ipaddr>
+      <ipaddr>10.0.10.1</ipaddr>
       <subnet>24</subnet>
     </lan>
+    <iot>
+      <if>vtnet0_vlan20</if>
+      <enable>1</enable>
+      <lock>1</lock>
+      <ipaddr>10.0.20.1</ipaddr>
+      <subnet>24</subnet>
+    </iot>
   </interfaces>
+
+  <vlans>
+    <vlan uuid="a1b2c3d4-1111-2222-3333-444455556666">
+      <if>vtnet0</if>
+      <tag>10</tag>
+      <pcp />
+      <descr>Trusted VLAN</descr>
+    </vlan>
+    <vlan uuid="a1b2c3d4-1111-2222-3333-444455557777">
+      <if>vtnet0</if>
+      <tag>20</tag>
+      <pcp />
+      <descr>IoT VLAN</descr>
+    </vlan>
+  </vlans>
 
   <ppps>
     <ppp>
@@ -121,7 +143,31 @@
             <protocol>any</protocol>
             <source_net>lan</source_net>
             <destination_net>any</destination_net>
-            <description>Default allow LAN to any rule</description>
+            <description>Default allow Trusted LAN to any rule</description>
+          </rule>
+          <rule uuid="993e300a-2768-46f2-a02d-22401d7abde1">
+            <enabled>1</enabled>
+            <sequence>2</sequence>
+            <action>block</action>
+            <quick>1</quick>
+            <interface>iot</interface>
+            <direction>in</direction>
+            <ipprotocol>inet</ipprotocol>
+            <source_net>iot</source_net>
+            <destination_net>10.0.0.0/8</destination_net>
+            <description>Block IoT to private subnets</description>
+          </rule>
+          <rule uuid="993e300a-2768-46f2-a02d-22401d7abde2">
+            <enabled>1</enabled>
+            <sequence>3</sequence>
+            <action>pass</action>
+            <quick>1</quick>
+            <interface>iot</interface>
+            <direction>in</direction>
+            <ipprotocol>inet</ipprotocol>
+            <source_net>iot</source_net>
+            <destination_net>any</destination_net>
+            <description>Allow IoT to WAN</description>
           </rule>
         </rules>
       </Filter>
@@ -131,66 +177,77 @@
       <dhcp4>
         <general>
           <enabled>1</enabled>
-          <interfaces>lan</interfaces>
+          <interfaces>lan,iot</interfaces>
           <valid_lifetime>4000</valid_lifetime>
           <fwrules>1</fwrules>
         </general>
         <subnets>
           <subnet4 uuid="d182f0b6-7eed-4820-b480-e57072caf753">
             <subnet_id>1</subnet_id>
-            <subnet>10.0.0.0/24</subnet>
-            <pools>10.0.0.100 - 10.0.0.250</pools>
+            <subnet>10.0.10.0/24</subnet>
+            <pools>10.0.10.100 - 10.0.10.250</pools>
             <option_data_autocollect>0</option_data_autocollect>
             <option_data>
-              <domain_name_servers>10.0.0.1</domain_name_servers>
-              <routers>10.0.0.1</routers>
-              <ntp_servers>10.0.0.1</ntp_servers>
+              <domain_name_servers>10.0.10.1</domain_name_servers>
+              <routers>10.0.10.1</routers>
+              <ntp_servers>10.0.10.1</ntp_servers>
             </option_data>
-            <description>DHCP Subnet Pool (WiFi and users)</description>
+            <description>Trusted DHCP Subnet Pool</description>
+          </subnet4>
+          <subnet4 uuid="e283f1c7-8eed-4931-c591-f68183daf864">
+            <subnet_id>2</subnet_id>
+            <subnet>10.0.20.0/24</subnet>
+            <pools>10.0.20.100 - 10.0.20.250</pools>
+            <option_data_autocollect>0</option_data_autocollect>
+            <option_data>
+              <domain_name_servers>10.0.20.1</domain_name_servers>
+              <routers>10.0.20.1</routers>
+            </option_data>
+            <description>IoT DHCP Subnet Pool</description>
           </subnet4>
         </subnets>
         <reservations>
           <reservation uuid="bb019ddc-d935-4714-8a75-090f837be63e">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.2</ip_address>
+            <ip_address>10.0.10.2</ip_address>
             <hw_address>00:23:24:c9:14:ff</hw_address>
             <hostname>pve</hostname>
             <description>Proxmox Server</description>
           </reservation>
           <reservation uuid="4c981ae9-ff44-45b7-9cfc-346fc55b3927">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.3</ip_address>
+            <ip_address>10.0.10.3</ip_address>
             <hw_address>60:15:6f:6e:92:7a</hw_address>
             <hostname>switch</hostname>
             <description>TP-Link TL-SG108E switch</description>
           </reservation>
           <reservation uuid="0f3a9cb8-f76c-4aec-a550-540087eac908">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.10</ip_address>
+            <ip_address>10.0.10.10</ip_address>
             <hw_address>64:29:43:92:4e:e9</hw_address>
             <hostname>wifi-main</hostname>
             <description>Main wifi node in living room</description>
           </reservation>
           <reservation uuid="f03a5605-fd6c-4289-ad71-c928168b794f">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.11</ip_address>
+            <ip_address>10.0.10.11</ip_address>
             <hw_address>64:29:43:92:4e:df</hw_address>
             <hostname>wifi-first-floor</hostname>
             <description>First floor wifi node</description>
           </reservation>
           <reservation uuid="2df95c94-8af1-4417-b832-bb8e90cc1f2d">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.12</ip_address>
+            <ip_address>10.0.10.12</ip_address>
             <hw_address>64:29:43:92:4e:f3</hw_address>
             <hostname>wifi-boiler-room</hostname>
             <description>Wifi node for the boiler room</description>
           </reservation>
           <reservation uuid="7ed9a947-9aa5-4d39-ac67-8e5f80d416fc">
             <subnet>d182f0b6-7eed-4820-b480-e57072caf753</subnet>
-            <ip_address>10.0.0.99</ip_address>
+            <ip_address>10.0.10.99</ip_address>
             <hw_address>bc:24:11:bd:85:75</hw_address>
             <hostname>proxy</hostname>
-            <description>Internal reverse proxy (static in Proxmox, reserved here for DNS/IPAM)</description>
+            <description>Internal reverse proxy</description>
           </reservation>
         </reservations>
       </dhcp4>
@@ -200,7 +257,7 @@
       <general>
         <enabled>1</enabled>
         <port>53</port>
-        <active_interface>lan</active_interface>
+        <active_interface>lan,iot</active_interface>
         <regdhcpdomain>internal</regdhcpdomain>
         <regdhcpstatic>1</regdhcpstatic>
         <noreglladdr6>1</noreglladdr6>
@@ -214,7 +271,7 @@
           <hostname>*</hostname>
           <domain>dalles.it</domain>
           <rr>A</rr>
-          <server>10.0.0.99</server>
+          <server>10.0.10.99</server>
           <description>Wildcard for *.dalles.it</description>
         </host>
       </hosts>

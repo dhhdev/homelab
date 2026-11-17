@@ -11,9 +11,9 @@ reboot-on-error = false
 
 [network]
 source = "from-answer"
-cidr = "10.0.0.2/24"
-gateway = "10.0.0.1"
-dns = "10.0.0.1"
+cidr = "10.0.10.2/24"
+gateway = "10.0.10.1"
+dns = "10.0.10.1"
 filter.ID_NET_NAME_PATH = "*"
 
 [disk-setup]

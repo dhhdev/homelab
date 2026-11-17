@@ -17,7 +17,7 @@ dalles.it, *.dalles.it {
 
 	@opnsense host opnsense.dalles.it
 	handle @opnsense {
-		reverse_proxy https://10.0.0.1 {
+		reverse_proxy https://10.0.10.1 {
 			transport http {
 				# Specific to lighttpd and how opnsense runs it
 				versions 1.1
@@ -29,7 +29,7 @@ dalles.it, *.dalles.it {
 
 	@pve host pve.dalles.it
 	handle @pve {
-		reverse_proxy https://10.0.0.2:8006 {
+		reverse_proxy https://10.0.10.2:8006 {
 			transport http {
 				tls_server_name pve.dalles.it
                 tls_trusted_ca_certs /etc/caddy/certs/pve-root-ca.pem
@@ -39,7 +39,7 @@ dalles.it, *.dalles.it {
 
 	@switch host switch.dalles.it
 	handle @switch {
-		reverse_proxy http://10.0.0.3
+		reverse_proxy http://10.0.10.3
 	}
 
 	@wifi_main host wifi-main.dalles.it
