@@ -3,7 +3,7 @@
 Declarative, minimal `config.xml` template and rendering script for the **OPNsense** virtual router running on Proxmox VE (`VM 101`).
 
 ## Key Configuration Details
-- **WAN (`pppoe0` on `vtnet1`):** Telenor PPPoE over VLAN 101 (tagged at the Proxmox `vmbr0` bridge level).
+- **WAN (`pppoe0` on `vtnet1`):** ISP PPPoE over VLAN 101 (tagged at the Proxmox `vmbr0` bridge level).
 - **LAN (`vtnet0`):** Static gateway `10.0.0.1/24` with hardware checksum, TSO, LRO, and VLAN hardware filtering disabled for VirtIO stability.
 - **Kea DHCPv4:** Dynamic pool `10.0.0.100–250` plus static reservations for core infrastructure (`pve`, `switch`, `wifi-*`, and `proxy`).
 - **Unbound DNS:** Forwards upstream queries to Cloudflare (`1.1.1.1`, `1.0.0.1`), registers static DHCP hostnames under `.internal`, and resolves wildcard `*.dalles.it` to `10.0.0.99`.
@@ -12,7 +12,7 @@ Declarative, minimal `config.xml` template and rendering script for the **OPNsen
 ## Generating `config.xml` Locally
 1. Copy the environment template and populate your secrets:
    ```bash
-   cp opnsense/.env.example opnsense/.env
+   cp 101-opnsense/.env.example 101-opnsense/.env
    ```
 2. Render the final `config.xml`:
    ```bash

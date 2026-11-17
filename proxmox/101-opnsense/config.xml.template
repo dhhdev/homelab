@@ -84,7 +84,7 @@
       <ports>vtnet1</ports>
       <username>${PPPOE_USERNAME}</username>
       <password>${PPPOE_PASSWORD}</password>
-      <descr>Telenor ISP Configuration</descr>
+      <descr>ISP Configuration</descr>
       <mtu>1492</mtu>
       <mru>1492</mru>
     </ppp>
