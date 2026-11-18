@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd)"
 PVE_ISO="${1:-proxmox-ve_9.2-1.iso}"
-OUT_ISO="${SCRIPT_DIR}/proxmox-ve-homelab-unattended.iso"
+OUT_ISO="${SCRIPT_DIR}/../build/proxmox-ve-homelab-unattended.iso"
 STAGING_DIR="$(mktemp -d)"
 
 trap 'rm -rf "${STAGING_DIR}"' EXIT
