@@ -1,4 +1,5 @@
 # Proxmox unattended ISO artifacts
+build
 assets
 proxmox/*.iso
 
