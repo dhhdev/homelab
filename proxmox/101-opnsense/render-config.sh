@@ -16,9 +16,10 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-VARS='${OPNSENSE_DALLE_PASSWORD_HASH} ${PPPOE_USERNAME} ${PPPOE_PASSWORD} ${OPNSENSE_WEBGUI_CERT_B64} ${OPNSENSE_WEBGUI_KEY_B64}'
+# Only substitute active secrets
+VARS='${OPNSENSE_DALLE_PASSWORD_HASH} ${PPPOE_USERNAME} ${PPPOE_PASSWORD}'
 
-envsubst "${VARS}" < "${TEMPLATE_FILE}" > "${OUTPUT_FILE}"
+envsubst "${VARS}" <"${TEMPLATE_FILE}" >"${OUTPUT_FILE}"
 chmod 600 "${OUTPUT_FILE}"
 
 echo "Rendered ${OUTPUT_FILE} successfully (permissions set to 600)."

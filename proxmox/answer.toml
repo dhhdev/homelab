@@ -5,7 +5,7 @@ fqdn = "pve.dalles.it"
 mailto = "daniel@dalles.dk"
 timezone = "Europe/Copenhagen"
 # Generate via: openssl passwd -6
-root-password-hashed = "$6$REPLACE_WITH_SHA512_PASSWORD_HASH"
+root-password-hashed = "$6$G7NzSMrEzrAqt0.j$7pySqhd.hjJ7wvPhOZAfvNnAByVXvd1uu.WdcgkCG5Pv6rFF5As4Ui77XzHRLO4XLEAYZqCF3gnWVAYCwOe6Y."
 root-ssh-keys = []
 reboot-on-error = false
 
@@ -25,5 +25,4 @@ filter.ID_MODEL = "*"
 
 [first-boot]
 source = "from-iso"
-executable = "first-boot.sh"
 ordering = "fully-up"

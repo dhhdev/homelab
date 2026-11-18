@@ -47,7 +47,7 @@ for candidate in \
   fi
 done
 
-# 3. Create VM 101 (OPNsense — Gateway 10.0.10.1) & attach seed config disk
+# 3. Create VM 101 (OPNsense — Gateway 10.0.10.1) & wire up nano image + seed config disk
 qm create 101 \
   --name opnsense \
   --ostype other \
@@ -57,27 +57,49 @@ qm create 101 \
   --memory 2048 \
   --balloon 0 \
   --scsihw virtio-scsi-single \
-  --scsi0 local-lvm:40,discard=on,iothread=1,ssd=1 \
   --net0 virtio=BC:24:11:43:00:84,bridge=vmbr0,queues=2 \
   --net1 virtio=BC:24:11:6E:92:04,bridge=vmbr0,queues=2,tag=101 \
   --agent enabled=1 \
-  --boot "order=scsi0;net0" \
+  --boot "order=scsi0" \
   --tags internal \
   --onboot 1 \
   --startup "order=1,up=30"
 
-if [[ -n "${PAYLOAD_DIR}" && -f "${PAYLOAD_DIR}/101-opnsense/config.xml" ]]; then
-  SEED_IMG="/var/lib/vz/images/101/opnsense-seed.img"
-  mkdir -p /var/lib/vz/images/101
-  dd if=/dev/zero of="${SEED_IMG}" bs=1M count=8 status=none
-  mkfs.vfat -n OPNsense "${SEED_IMG}" >/dev/null
-  MNT_TMP="$(mktemp -d)"
-  mount -o loop "${SEED_IMG}" "${MNT_TMP}"
-  mkdir -p "${MNT_TMP}/conf"
-  cp "${PAYLOAD_DIR}/101-opnsense/config.xml" "${MNT_TMP}/conf/config.xml"
-  umount "${MNT_TMP}"
-  rmdir "${MNT_TMP}"
-  qm set 101 --ide0 "local:101/opnsense-seed.img"
+# Decompress and import OPNsense 26.7 nano image from payload assets
+if [[ -n "${PAYLOAD_DIR}" && -f "${PAYLOAD_DIR}/assets/OPNsense-26.7-nano-amd64.img.bz2" ]]; then
+  echo "Extracting OPNsense nano image..."
+  bunzip2 -ck "${PAYLOAD_DIR}/assets/OPNsense-26.7-nano-amd64.img.bz2" >/tmp/opnsense.img
+  qm importdisk 101 /tmp/opnsense.img local-lvm
+  qm set 101 --scsi0 local-lvm:vm-101-disk-0,discard=on,iothread=1,ssd=1
+  qm resize 101 scsi0 32G
+  rm -f /tmp/opnsense.img
+else
+  echo "WARNING: OPNsense nano image not found in payload assets, creating blank disk fallback." >&2
+  qm set 101 --scsi0 local-lvm:40,discard=on,iothread=1,ssd=1
+fi
+
+# Render OPNsense config from template/env if present, then build seed config disk
+if [[ -n "${PAYLOAD_DIR}" && -d "${PAYLOAD_DIR}/101-opnsense" ]]; then
+  echo "Rendering OPNsense configuration..."
+  cd "${PAYLOAD_DIR}/101-opnsense"
+  if [[ -f "render-config.sh" ]]; then
+    bash render-config.sh
+  fi
+  cd - >/dev/null
+
+  if [[ -f "${PAYLOAD_DIR}/101-opnsense/config.xml" ]]; then
+    SEED_IMG="/var/lib/vz/images/101/opnsense-seed.img"
+    mkdir -p /var/lib/vz/images/101
+    dd if=/dev/zero of="${SEED_IMG}" bs=1M count=8 status=none
+    mkfs.vfat -n OPNsense "${SEED_IMG}" >/dev/null
+    MNT_TMP="$(mktemp -d)"
+    mount -o loop "${SEED_IMG}" "${MNT_TMP}"
+    mkdir -p "${MNT_TMP}/conf"
+    cp "${PAYLOAD_DIR}/101-opnsense/config.xml" "${MNT_TMP}/conf/config.xml"
+    umount "${MNT_TMP}"
+    rmdir "${MNT_TMP}"
+    qm set 101 --ide0 "local:101/opnsense-seed.img"
+  fi
 fi
 
 # Boot OPNsense & wait for WAN connectivity before downloading LXC templates

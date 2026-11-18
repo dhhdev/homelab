@@ -20,7 +20,13 @@ fi
 
 # 2. Prepare ISO payload
 mkdir -p "${STAGING_DIR}/homelab-payload/199-caddy-proxy/certs"
+mkdir -p "${STAGING_DIR}/homelab-payload/assets"
 cp -r "${SCRIPT_DIR}/199-caddy-proxy" "${STAGING_DIR}/homelab-payload/"
+
+# Copy OPNsense nano image into the payload assets
+if [[ -f "${SCRIPT_DIR}/assets/OPNsense-26.7-nano-amd64.img.bz2" ]]; then
+  cp "${SCRIPT_DIR}/assets/OPNsense-26.7-nano-amd64.img.bz2" "${STAGING_DIR}/homelab-payload/assets/"
+fi
 
 if [[ -f "${SCRIPT_DIR}/101-opnsense/.env" ]]; then
   bash "${SCRIPT_DIR}/101-opnsense/render-config.sh"

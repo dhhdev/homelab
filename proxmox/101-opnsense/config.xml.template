@@ -42,7 +42,6 @@
 
     <webgui>
       <protocol>https</protocol>
-      <ssl-certref>6af0a7dc9c170</ssl-certref>
       <althostnames>opnsense.dalles.it dalles.it</althostnames>
     </webgui>
 
@@ -283,11 +282,4 @@
       </general>
     </QemuGuestAgent>
   </OPNsense>
-
-  <cert uuid="56bd846a-5ba4-4c47-ac36-5241e182281a">
-    <refid>6af0a7dc9c170</refid>
-    <descr>Web GUI TLS certificate</descr>
-    <crt>${OPNSENSE_WEBGUI_CERT_B64}</crt>
-    <prv>${OPNSENSE_WEBGUI_KEY_B64}</prv>
-  </cert>
 </opnsense>
