@@ -51,7 +51,7 @@ WIFI_IOT_SSID="My WiFi IoT"
 WIFI_IOT_PASS="CHANGE_ME"
 
 # Mesh backhaul (5GHz) wireless password, all nodes need the same to talk to each other.
-MESH_BACKHAUL_ID="my-mesh-backhaul"
+MESH_BACKHAUL_ID="mesh-backhaul"
 MESH_BACKHAUL_PASS="CHANGE_ME"
 
 # Important: It follows this https://git.kernel.org/pub/scm/linux/kernel/git/sforshee/wireless-regdb.git/tree/db.txt
