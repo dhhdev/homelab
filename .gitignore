@@ -1,6 +1,6 @@
 # Proxmox unattended ISO artifacts
-build
-assets
+build/
+assets/
 proxmox/*.iso
 
 # OPNsense secrets & rendered config
