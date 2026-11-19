@@ -1,30 +1,62 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd)"
-BIN_DIR="${SCRIPT_DIR}/bin"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BUILD_DIR="${REPO_ROOT}/build"
 
-SQUASHFS_IMG=$(find "${BIN_DIR}" -maxdepth 1 -name 'root.squashfs' | head -n1)
+shopt -s nullglob
+bin_files=("${BUILD_DIR}"/*.bin)
+shopt -u nullglob
 
-if [[ -z "${SQUASHFS_IMG}" || ! -f "${SQUASHFS_IMG}" ]]; then
-  echo "Error: No root.squashfs found in ${BIN_DIR}. Ensure build-firmware.sh copies it over." >&2
+if [[ ${#bin_files[@]} -eq 0 ]]; then
+  echo "Error: No .bin files found in ${BUILD_DIR}. Run build-firmware.sh first." >&2
   exit 1
 fi
 
-echo "Verifying root.squashfs..."
+# Prefer a sysupgrade image if multiple .bin files exist
+TARGET_BIN=""
+for candidate in "${bin_files[@]}"; do
+  if [[ "$(basename "${candidate}")" == *sysupgrade* ]]; then
+    TARGET_BIN="${candidate}"
+    break
+  fi
+done
+if [[ -z "${TARGET_BIN}" ]]; then
+  TARGET_BIN="${bin_files[0]}"
+fi
+
+BIN_NAME="$(basename "${TARGET_BIN}")"
+echo "Verifying ${BIN_NAME} from ${BUILD_DIR}..."
 
 docker run --rm --platform linux/amd64 \
-  -v "${BIN_DIR}:/bin_dir:ro" \
+  -v "${BUILD_DIR}:/build_dir:ro" \
   debian:bookworm \
   bash -c '
     set -euo pipefail
-    apt-get update -qq && apt-get install -y -qq squashfs-tools >/dev/null
-    mkdir -p /tmp/img && cd /tmp/img
+    BIN_NAME="$1"
+    IMG_PATH="/build_dir/${BIN_NAME}"
 
-    IMG_FILE=$(ls /bin_dir/root.squashfs | head -n1)
+    apt-get update -qq && apt-get install -y -qq squashfs-tools python3 >/dev/null
+    mkdir -p /tmp/work && cd /tmp/work
 
-    # Unpack the raw squashfs image directly
-    unsquashfs -d rootfs "${IMG_FILE}" >/dev/null
+    # OpenWrt firmware .bin images contain a SquashFS magic header ("hsqs" little-endian or "sqsh" big-endian)
+    OFFSET=$(python3 -c '\''
+import sys
+data = open(sys.argv[1], "rb").read()
+for magic in (b"hsqs", b"sqsh"):
+    idx = data.find(magic)
+    if idx != -1:
+        print(idx)
+        sys.exit(0)
+sys.exit(1)
+'\'' "${IMG_PATH}") || {
+      echo "FAIL: Could not locate an embedded SquashFS image inside ${BIN_NAME}." >&2
+      exit 1
+    }
+
+    echo "Found embedded SquashFS at byte offset ${OFFSET}."
+    unsquashfs -offset "${OFFSET}" -d rootfs "${IMG_PATH}" >/dev/null
 
     TARGET="rootfs/etc/uci-defaults/99-mesh-defaults"
 
@@ -44,14 +76,14 @@ docker run --rm --platform linux/amd64 \
     fi
 
     # 4. Print sanitized summary (SSIDs shown, passwords masked)
-    echo "PASS: Permissions (755), POSIX syntax, and secret injection verified."
-    grep -E "^WIFI_.*_SSID=" "${TARGET}"
+    echo "PASS: Permissions (755), POSIX syntax, and secret injection verified in ${BIN_NAME}."
+    grep -E "^WIFI_.*_SSID=" "${TARGET}" || true
     for key in MASTER_ROOT_PASS WIFI_TRUSTED_PASS WIFI_GUEST_PASS WIFI_IOT_PASS MESH_BACKHAUL_PASS; do
-      val=$(grep -E "^${key}=" "${TARGET}" | cut -d"=" -f2- | tr -d "\"")
+      val=$(grep -E "^${key}=" "${TARGET}" | head -n1 | cut -d"=" -f2- | tr -d "\"")
       if [[ -n "${val}" ]]; then
         echo "${key}=[SET (${#val} chars)]"
       else
         echo "${key}=[EMPTY]"
       fi
     done
-  '
+  ' _ "${BIN_NAME}"

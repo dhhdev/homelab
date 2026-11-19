@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
-OUT_DIR="${SCRIPT_DIR}/bin"
+OUT_DIR="${REPO_ROOT}/build"
 STAGING_DIR="$(mktemp -d)"
 
 trap 'rm -rf "${STAGING_DIR}"' EXIT
@@ -32,7 +33,6 @@ path = sys.argv[1]
 with open(path, "r") as f:
     content = f.read()
 
-# Define variables to inject from environment
 variables = [
     "MASTER_ROOT_PASS",
     "SSH_PUBLIC_KEY",
@@ -48,8 +48,12 @@ variables = [
 for key in variables:
     val = os.environ.get(key, "")
     if val:
-        # 1. Update variable assignments (e.g., KEY="CHANGE_ME" or KEY="")
-        content = re.sub(rf'(?m)^\s*{key}="[^"]*"', f'{key}="{val}"', content)
+        # 1. Update variable assignments safely (using lambda to prevent backslash escapes)
+        content = re.sub(
+            rf'(?m)^\s*{key}="[^"]*"',
+            lambda _, k=key, v=val: f'{k}="{v}"',
+            content,
+        )
 
         # 2. Update conditional checks comparing against "CHANGE_ME"
         content = content.replace(f'"${key}" = "CHANGE_ME"', f'"${key}" = "__CONFIGURED__"')
@@ -67,12 +71,20 @@ docker run --rm --platform linux/amd64 \
   -v "${OUT_DIR}:/output" \
   "openwrt/imagebuilder:mediatek-mt7622-${OPENWRT_VERSION}" \
   bash -c '
+    set -e
     make image \
       PROFILE="dlink_eagle-pro-ai-m32-a1" \
       PACKAGES="wpad-mesh-mbedtls luci luci-ssl luci-app-attendedsysupgrade usteer luci-app-usteer libubox netifd -dnsmasq -firewall4 -nftables -kmod-nft-offload -odhcp6c -odhcpd-ipv6only -ppp -ppp-mod-pppoe -wpad-basic-mbedtls" \
-      FILES="/custom-files" && \
-    cp bin/targets/mediatek/mt7622/*dlink_eagle-pro-ai-m32-a1*.bin /output/ && \
-    cp build_dir/target-aarch64_cortex-a53_musl/linux-mediatek_mt7622/root.squashfs /output/
+      FILES="/custom-files"
+
+    shopt -s nullglob
+    bins=(bin/targets/mediatek/mt7622/*.bin)
+    if [ ${#bins[@]} -eq 0 ]; then
+      echo "Error: No .bin files found in bin/targets/mediatek/mt7622/" >&2
+      ls -la bin/targets/mediatek/mt7622/ >&2
+      exit 1
+    fi
+    cp -v "${bins[@]}" /output/
   '
 
 if [[ "${VERIFY_BUILD}" == 'true' ]]; then
