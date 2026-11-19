@@ -1,26 +1,7 @@
-# Proxmox unattended ISO artifacts
-build/
-assets/
-proxmox/*.iso
-
-# OPNsense secrets & rendered config
-proxmox/101-opnsense/.env
-proxmox/101-opnsense/config.xml
-
-# Caddy secrets & xcaddy compiled binary
-proxmox/199-caddy-proxy/caddy.env
-proxmox/199-caddy-proxy/caddy-linux-amd64
-
-# OpenTofu / Terraform state & local variables
-**/.terraform/
-*.tfstate*
-*.tfvars
-variables.tf
-
-# openwrt specific ignores
-*.squashfs
-
-# macOS system files
+# ==========================================
+# Operating System & Editors
+# ==========================================
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -29,23 +10,52 @@ variables.tf
 .Trashes
 .fseventsd
 
-# Editor & IDE directories
+# Editors & IDEs
 .zed/
 .vscode/
 .idea/
 
-# Firmware images and build artifacts
+# ==========================================
+# Secrets, Credentials & Local Overrides
+# ==========================================
+.env
+.env.*
+!.env.example
+*.local.sh
+*secrets*
+*backup*
+*.log
+
+# Component-specific secrets & rendered configs
+proxmox/answer.toml
+proxmox/101-opnsense/config.xml
+proxmox/199-caddy-proxy/caddy.env
+
+# ==========================================
+# Build Artifacts, Firmware & Disk Images
+# ==========================================
+build/
+assets/
+proxmox/199-caddy-proxy/caddy-linux-amd64
+
+# Firmware & compressed archives
 *.bin
 *.img
+*.squashfs
+*.iso
+*.bz2
+*.xz
 *.gz
 *.tar
 *.tar.gz
 *.zip
 *.sha256
 
-# Local credentials, backups, secrets and log files
-.env
-*.local.sh
-*secrets*
-*backup*
-*.log
+# ==========================================
+# OpenTofu / Terraform
+# ==========================================
+**/.terraform/
+*.tfstate*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
