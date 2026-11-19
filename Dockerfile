@@ -1,4 +1,4 @@
-# Zed doesn't lile this, or rather Docker. But because I am on Apple Silicone chip,
+# Zed doesn't like this, or rather Docker. But because I am on Apple Silicon chip,
 # I have to have this line. Annoying? Yes. Needed? Also yes. But annoying that Zed
 # also annoys me with it.
 # check=skip=FromPlatformFlagConstDisallowed
