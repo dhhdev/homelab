@@ -1,7 +1,9 @@
 FROM --platform=linux/amd64 debian:trixie-slim
 
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
+    ca-certificates \
     gettext-base \
+    golang-go \
     wget \
     gnupg \
     xorriso \
